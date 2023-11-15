@@ -1,12 +1,15 @@
+import { TRPCError } from '@trpc/server';
 import { publicProcedure, router } from './trpc';
 
 const errorHandlingProcedure = publicProcedure.use(async ({ ctx, next }) => {
-  try {
-    return await next({ ctx });
-  } catch (err) {
-    console.log('caught error in middleware', err);
-    throw err;
+  const resp = await next({ ctx });
+
+  if (!resp.ok) {
+    console.log('middleware intercepted error');
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
+
+  return resp;
 });
 
 export const appRouter = router({
